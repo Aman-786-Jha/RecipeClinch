@@ -6,6 +6,7 @@ from datetime import datetime
 from starclinch.schedulers.scheduler import *
 from django.utils.timezone import localtime
 
+
 ################################## signup Serializer ##################
 
 class CustomerSignupSerializer(serializers.ModelSerializer):
