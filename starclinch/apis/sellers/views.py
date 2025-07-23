@@ -28,30 +28,37 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 ######################### Seller Signup ##################################
 
 # Create your views here.
-class SellerSingupView(APIView):
+class SellerSignupView(APIView):
     parser_classes = [MultiPartParser]
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        request_body=SellerSignupSerializer,
         manual_parameters=[
-            openapi.Parameter('profile_picture', in_=openapi.IN_FORM, type=openapi.TYPE_FILE),
+            openapi.Parameter('full_name', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('profile_picture', openapi.IN_FORM, type=openapi.TYPE_FILE, required=False),
+            openapi.Parameter('countrycode', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True, description="Country code e.g. +91"),
+            openapi.Parameter('mobile_number', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('email', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('gender', openapi.IN_FORM, type=openapi.TYPE_STRING, required=False, enum=["Male", "Female", "Other"]),
+            openapi.Parameter('age', openapi.IN_FORM, type=openapi.TYPE_INTEGER, required=False),
+            openapi.Parameter('dob', openapi.IN_FORM, type=openapi.TYPE_STRING, required=False, description="Date of Birth (YYYY-MM-DD)"),
+            openapi.Parameter('address', openapi.IN_FORM, type=openapi.TYPE_STRING, required=False),
+            openapi.Parameter('password', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('confirm_password', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
         ],
         responses={
-            201: openapi.Response(description='Created', schema=SellerSignupSerializer),
-            400: openapi.Response(description='Bad Request', schema=openapi.Schema(type=openapi.TYPE_OBJECT)),
-            500: openapi.Response(description='Internal Server Error', schema=openapi.Schema(type=openapi.TYPE_OBJECT)),
+            201: openapi.Response(description='Created'),
+            400: openapi.Response(description='Bad Request'),
+            500: openapi.Response(description='Internal Server Error'),
         },
         operation_summary="Create a new Seller user with image uploads",
-        operation_description="Create a new Seller user with Swagger documentation. "
-                              "Upload images (profile_image) using this API.",
+        operation_description="This endpoint creates a new Seller user. You can upload profile image and form data using multipart/form-data.",
     )
     def post(self, request):
         try:
             serializer = SellerSignupSerializer(data=request.data)
             if serializer.is_valid():
                 user_obj = serializer.save()
-
                 return Response(
                     {
                         'responseCode': status.HTTP_201_CREATED,
@@ -60,22 +67,29 @@ class SellerSingupView(APIView):
                             "full_name": user_obj.full_name,
                             "email": user_obj.email,
                             "uuid": user_obj.uuid,
-                            "userRole":user_obj.user_type,
+                            "userRole": user_obj.user_type,
                         }
                     },
                     status=status.HTTP_201_CREATED
                 )
 
+            return Response(
+                {
+                    'responseCode': status.HTTP_400_BAD_REQUEST,
+                    'responseMessage': serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         except serializers.ValidationError as e:
             return Response(
                 {
                     'responseCode': status.HTTP_400_BAD_REQUEST,
-                    'responseMessage': [f"{error[1]}" for error in dict(e.detail).items()][0],
+                    'responseMessage': str(e.detail),
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         except Exception as e:
             print("SellerSignUpView Error -->", e)
             return Response(
@@ -85,6 +99,7 @@ class SellerSingupView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
 
 
 

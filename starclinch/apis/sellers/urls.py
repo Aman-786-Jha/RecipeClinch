@@ -5,7 +5,7 @@ from . import views
 urlpatterns = [
 
     ######################### Seller Authentication ############################
-    path('seller/signup/',SellerSingupView.as_view(),name='seller_signup'),
+    path('seller/signup/',SellerSignupView.as_view(),name='seller_signup'),
     path('seller/login/',SellerLoginView.as_view(),name='seller_login'),
     path('seller/logout/',SellerUserLogoutView.as_view(),name='seller_logout'),
 

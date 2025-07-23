@@ -29,58 +29,54 @@ class CustomerSignupView(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        request_body=CustomerSignupSerializer,
         manual_parameters=[
-            openapi.Parameter('profile_picture', in_=openapi.IN_FORM, type=openapi.TYPE_FILE),
+            openapi.Parameter('full_name', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('profile_picture', openapi.IN_FORM, type=openapi.TYPE_FILE, required=False),
+            openapi.Parameter('countrycode', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True, description="E.g. +91"),
+            openapi.Parameter('mobile_number', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('email', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('gender', openapi.IN_FORM, type=openapi.TYPE_STRING, required=False, enum=["Male", "Female", "Other"]),
+            openapi.Parameter('age', openapi.IN_FORM, type=openapi.TYPE_INTEGER, required=False),
+            openapi.Parameter('dob', openapi.IN_FORM, type=openapi.TYPE_STRING, required=False, description="Date of Birth (YYYY-MM-DD)"),
+            openapi.Parameter('address', openapi.IN_FORM, type=openapi.TYPE_STRING, required=False),
+            openapi.Parameter('confirm_password', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('password', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
         ],
         responses={
             201: openapi.Response(description='Created', schema=CustomerSignupSerializer),
-            400: openapi.Response(description='Bad Request', schema=openapi.Schema(type=openapi.TYPE_OBJECT)),
-            500: openapi.Response(description='Internal Server Error', schema=openapi.Schema(type=openapi.TYPE_OBJECT)),
+            400: openapi.Response(description='Bad Request'),
+            500: openapi.Response(description='Internal Server Error'),
         },
-        operation_summary="Create a new Customer user with image uploads",
-        operation_description="Create a new Customer user with Swagger documentation. "
-                              "Upload images (profile_image) using this API.",
+        operation_summary="Create a new Customer user with image upload",
+        operation_description="Create a new Customer user and upload profile picture via multipart form-data.",
     )
     def post(self, request):
         try:
             serializer = CustomerSignupSerializer(data=request.data)
             if serializer.is_valid():
                 user_obj = serializer.save()
-
-                return Response(
-                    {
-                        'responseCode': status.HTTP_201_CREATED,
-                        'responseMessage': f"Account Created!",
-                        'responseData': {
-                            "full_name": user_obj.full_name,
-                            "email": user_obj.email,
-                            "uuid": user_obj.uuid,
-                            "userRole":user_obj.user_type,
-                        }
-                    },
-                    status=status.HTTP_201_CREATED
-                )
-
-
-        except serializers.ValidationError as e:
-            return Response(
-                {
+                return Response({
+                    'responseCode': status.HTTP_201_CREATED,
+                    'responseMessage': "Account Created!",
+                    'responseData': {
+                        "full_name": user_obj.full_name,
+                        "email": user_obj.email,
+                        "uuid": user_obj.uuid,
+                        "userRole": user_obj.user_type,
+                    }
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({
                     'responseCode': status.HTTP_400_BAD_REQUEST,
-                    'responseMessage': [f"{error[1]}" for error in dict(e.detail).items()][0],
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+                    'responseMessage': serializer.errors,
+                }, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             print("CustomerSignUpView Error -->", e)
-            return Response(
-                {
-                    'responseCode': status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    'responseMessage': "Something went wrong",
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                'responseCode': status.HTTP_500_INTERNAL_SERVER_ERROR,
+                'responseMessage': "Something went wrong",
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 ################################## Customer Login ################################
 
