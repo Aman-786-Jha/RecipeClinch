@@ -3,6 +3,8 @@
 🌟 StarClinch - Backend System
 A robust Django-based backend system supporting advanced user role management, cloud storage (AWS S3, Cloudinary), Celery task scheduling, PostgreSQL/MySQL/SQLite3 databases, Redis as a message broker, and a fully documented API with Swagger.
 
+Live Url for the application :- https://newrecipeclinch.onrender.com/swagger/
+
 
 🚀 Project Setup Instructions
 1. 📥 Clone the Repository
